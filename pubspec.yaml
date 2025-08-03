@@ -1,0 +1,31 @@
+name: my_flutter_app
+description: Inova+ App Challenge
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ">=2.18.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  rive: ^0.9.0
+  simple_animations: ^5.0.0
+
+  # outras dependências...
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/avatar.png
+    - assets/images/inova_logo.png
+    - assets/images/robo1.png
+    - assets/images/robo2.png
+    - assets/images/robo3.png
+    - assets/images/robo4.png
+    - assets/images/robo5.png
+    - assets/images/robo6.png
+    - assets/images/robo7.png
+  
+    
+  

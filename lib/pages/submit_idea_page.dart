@@ -48,13 +48,21 @@ class _SubmitIdeaPageState extends State<SubmitIdeaPage> {
     setState(() => _fileName = 'documento.pdf');
   }
 
+  // ✅ ALTERADO: agora a tela retorna a ideia criada para quem chamou
   void _submit() {
     if (!_formKey.currentState!.validate()) return;
-    // TODO: enviar ao backend
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Ideia enviada com sucesso!')),
-    );
-    Navigator.of(context).pushReplacementNamed('/home');
+
+    final newIdea = <String, dynamic>{
+      'title'      : _titleCtrl.text.trim(),
+      'description': _descCtrl.text.trim(),
+      'category'   : _selectedCategory,
+      'fileName'   : _fileName,
+      'status'     : 'Em análise',
+      'createdAt'  : DateTime.now(), // use como preferir na home
+    };
+
+    // Devolve os dados para a página anterior (home) capturar via await
+    Navigator.pop(context, newIdea);
   }
 
   void _onTapNav(int idx) {

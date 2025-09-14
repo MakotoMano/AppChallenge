@@ -5,27 +5,55 @@ import '../widgets/background_scaffold.dart';
 import '../widgets/animated_logo_image.dart';
 import '../widgets/touch_animated_button.dart';
 
-class InovaPlusPage extends StatelessWidget {
+class InovaPlusPage extends StatefulWidget {
   const InovaPlusPage({Key? key}) : super(key: key);
+
+  @override
+  State<InovaPlusPage> createState() => _InovaPlusPageState();
+}
+
+class _InovaPlusPageState extends State<InovaPlusPage> {
+  /// Lista “Minhas ideias”. Em produção isso viria do backend.
+  final List<Map<String, dynamic>> _myIdeas = [
+    {
+      'title': 'Aplicativo para treinamentos',
+      'status': 'Em análise',
+      'date': DateTime(2023, 10, 12),
+    },
+  ];
 
   void _onTapNav(BuildContext context, int idx) {
     switch (idx) {
       case 0:
-        // Ideias (home)
         Navigator.of(context).pushReplacementNamed('/home');
         break;
       case 1:
-        // QR code
         Navigator.of(context).pushReplacementNamed('/qr');
         break;
       case 2:
-        // Pontuação
         Navigator.of(context).pushReplacementNamed('/points');
         break;
       case 3:
-        // Explorar
         Navigator.of(context).pushReplacementNamed('/explore');
         break;
+    }
+  }
+
+  /// Abre a página de submissão, aguarda o retorno e insere a ideia na lista.
+  Future<void> _openSubmit() async {
+    final result =
+        await Navigator.pushNamed(context, '/submit') as Map<String, dynamic>?;
+
+    if (result != null) {
+      setState(() {
+        _myIdeas.insert(0, {
+          'title': (result['title'] as String?) ?? 'Sem título',
+          'status': (result['status'] as String?) ?? 'Em análise',
+          'date': (result['date'] is DateTime)
+              ? result['date'] as DateTime
+              : DateTime.now(), // fallback seguro
+        });
+      });
     }
   }
 
@@ -43,17 +71,28 @@ class InovaPlusPage extends StatelessWidget {
               children: [
                 const _Header(),
                 const SizedBox(height: 32),
+
+                /// Botão que abre a tela de submit e A-G-U-A-R-D-A o retorno
                 TouchAnimatedButton(
                   label: 'SUBMETER IDEIA',
-                  onPressed: () {
-                    Navigator.of(context).pushReplacementNamed('/submit');
-                  },
+                  onPressed: _openSubmit,
                 ),
+
                 const SizedBox(height: 40),
                 const _SectionTitle('Minhas ideias'),
                 const SizedBox(height: 12),
-                const IdeaCard(),
-                const SizedBox(height: 40),
+
+                // Lista dinâmica das suas ideias
+                for (final idea in _myIdeas) ...[
+                  IdeaCard(
+                    title: (idea['title'] as String?) ?? 'Sem título',
+                    status: (idea['status'] as String?) ?? 'Em análise',
+                    date: (idea['date'] as DateTime?) ?? DateTime.now(),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+
+                const SizedBox(height: 16),
                 const _SectionTitle('Pontos'),
                 const SizedBox(height: 12),
                 const PointsCard(),
@@ -64,7 +103,7 @@ class InovaPlusPage extends StatelessWidget {
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 0, // Índice da aba “Ideias”
+        currentIndex: 0, // Aba “Ideias”
         onTap: (idx) => _onTapNav(context, idx),
         backgroundColor: Colors.white.withOpacity(0.9),
         selectedItemColor: const Color(0xFF1877F2),
@@ -98,8 +137,6 @@ class _Header extends StatelessWidget {
   }
 }
 
-// Continue definindo _SectionTitle, IdeaCard, PointsCard… exatamente como antes.
-
 /// --------------------------------------------------------------------------
 /// Título de seção
 /// --------------------------------------------------------------------------
@@ -116,10 +153,20 @@ class _SectionTitle extends StatelessWidget {
 }
 
 /// --------------------------------------------------------------------------
-/// Card de ideia (hover/scale)
+/// Card de ideia (hover/scale) — agora com dados dinâmicos
 /// --------------------------------------------------------------------------
 class IdeaCard extends StatefulWidget {
-  const IdeaCard({Key? key}) : super(key: key);
+  final String title;
+  final String status;
+  final DateTime date;
+
+  const IdeaCard({
+    Key? key,
+    required this.title,
+    required this.status,
+    required this.date,
+  }) : super(key: key);
+
   @override
   _IdeaCardState createState() => _IdeaCardState();
 }
@@ -129,6 +176,9 @@ class _IdeaCardState extends State<IdeaCard> {
 
   @override
   Widget build(BuildContext context) {
+    final dateStr =
+        MaterialLocalizations.of(context).formatFullDate(widget.date);
+
     return MouseRegion(
       onEnter: (_) => setState(() => _hovering = true),
       onExit: (_) => setState(() => _hovering = false),
@@ -151,12 +201,15 @@ class _IdeaCardState extends State<IdeaCard> {
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
-            Text('Aplicativo para treinamentos', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            SizedBox(height: 4),
-            Text('Em análise', style: TextStyle(fontSize: 14, color: Color(0xFF666666))),
-            SizedBox(height: 4),
-            Text('12 out 2023', style: TextStyle(fontSize: 14, color: Color(0xFF666666))),
+          children: [
+            Text(widget.title,
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 4),
+            Text(widget.status,
+                style: const TextStyle(fontSize: 14, color: Color(0xFF666666))),
+            const SizedBox(height: 4),
+            Text(dateStr,
+                style: const TextStyle(fontSize: 14, color: Color(0xFF666666))),
           ],
         ),
       ),
@@ -205,7 +258,8 @@ class _PointsCardState extends State<PointsCard> {
             TextButton(
               onPressed: () {},
               style: TextButton.styleFrom(foregroundColor: const Color(0xFF1877F2)),
-              child: const Text('resgatar recompensas', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+              child: const Text('resgatar recompensas',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
             ),
           ],
         ),
